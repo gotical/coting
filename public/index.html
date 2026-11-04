@@ -16,13 +16,13 @@
 <body>
 <header class="topbar">
   <button id="menu-btn" class="iconbtn" title="Меню">☰</button>
-  <button id="model-chip" class="brand-select">Coting <span class="chev">▾</span></button>
+  <button id="model-chip" class="brand-select">Coting <span class="chev"></span></button>
   <button id="new-chat-btn" class="iconbtn" title="Новый чат">✎</button>
 </header>
 
 <main id="messages" class="messages">
   <div id="welcome" class="welcome">
-    <div class="welcome-cat">🐱</div>
+    <div class="welcome-cat"></div>
     <h1>Coting</h1>
     <p class="tagline">Кодинг-кот в Termux. Мяу!</p>
     <p class="hint">Пишет и правит файлы, гоняет команды, ловит баги.<br>Рабочая папка — 📁 в настройках меню.</p>
@@ -39,12 +39,12 @@
 
 <aside id="drawer" class="drawer">
   <div class="drawer-header">
-    <span class="drawer-brand">🐱 Coting</span>
+    <span class="drawer-brand">Coting</span>
     <button id="drawer-close" class="iconbtn">×</button>
   </div>
-  <button id="new-chat" class="drawer-btn">✎ Новый чат</button>
-  <button id="open-sessions" class="drawer-btn">📁 История чатов</button>
-  <button id="open-settings" class="drawer-btn">⚙ Настройки</button>
+  <button id="new-chat" class="drawer-btn"></button>
+  <button id="open-sessions" class="drawer-btn"></button>
+  <button id="open-settings" class="drawer-btn"></button>
   <div class="drawer-section" id="drawer-info">—</div>
   <div class="drawer-paw">Мяу-мяу 🐾<br><a href="https://rybinsklab.ru" target="_blank" style="color:var(--text-muted)">© 2026 RybinskLab · rybinsklab.ru</a></div>
 </aside>
@@ -63,7 +63,7 @@
     <button id="sessions-close" class="iconbtn">×</button>
   </div>
   <div class="search-wrap">
-    <input id="search-input" type="text" placeholder="🔍 Поиск по всем чатам…" />
+    <input id="search-input" type="text" placeholder="Поиск по всем чатам…" />
   </div>
   <div id="sessions-list" class="sessions-list"></div>
 </aside>
@@ -75,7 +75,7 @@
   </div>
   <div class="settings-body">
     <label class="field">
-      <span>Рабочая папка проекта 📁</span>
+      <span>Рабочая папка проекта</span>
       <input id="cwd-input" type="text" placeholder="/data/data/com.termux/files/home" />
     </label>
     <label class="field row">
@@ -83,11 +83,11 @@
       <input id="approve-toggle" type="checkbox" />
     </label>
     <label class="field row">
-      <span>☀ Светлая тема</span>
+      <span>Светлая тема</span>
       <input id="light-toggle" type="checkbox" />
     </label>
-    <button id="open-providers" class="drawer-btn" style="margin:0">🔗 Провайдеры и аккаунты</button>
-    <button id="open-servers" class="drawer-btn" style="margin:0">🖥 Серверы и хостинги (SSH/FTP)</button>
+    <button id="open-providers" class="drawer-btn" style="margin:0"></button>
+    <button id="open-servers" class="drawer-btn" style="margin:0"></button>
     <p class="note">Когда включено подтверждение — перед каждой командой кот спросит разрешения. По умолчанию команды выполняются сразу.</p>
   </div>
 </aside>
@@ -101,7 +101,7 @@
     <div id="providers-list" class="providers-list"></div>
     <p class="note">Встроенные (метка zcode) читаются из ~/.zcode/v2/provider_config.json и доступны всем твоим инструментам сразу. Свои — добавляй ниже: Anthropic- или OpenAI-совместимый API.</p>
     <div class="add-provider">
-      <div class="provider-form-title">＋ Свой провайдер</div>
+      <div class="provider-form-title">Свой провайдер</div>
       <label class="field"><span>Название</span><input id="np-name" type="text" placeholder="Мой шлюз" /></label>
       <label class="field"><span>API-тип</span>
         <select id="np-api">
@@ -135,7 +135,7 @@
     <div id="servers-list" class="providers-list"></div>
     <p class="note">Аккаунты хранятся на устройстве (~/.config/coting/servers.json, chmod 600). Агент сможет выполнять команды и гонять файлы — только когда ты попросишь в чате.</p>
     <div class="add-provider">
-      <div class="provider-form-title">＋ Свой сервер</div>
+      <div class="provider-form-title">Свой сервер</div>
       <label class="field"><span>Название</span><input id="ns-name" type="text" placeholder="Мой VPS" /></label>
       <label class="field"><span>Тип</span>
         <select id="ns-type">

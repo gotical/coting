@@ -21,6 +21,74 @@
     abortCtl: null,
   };
 
+
+  // ---------------- SVG-иконки (Feather-стиль) ----------------
+  const svgWrap = (inner, fill) =>
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="' + (fill ? 'currentColor' : 'none') +
+    '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + inner + '</svg>';
+
+  const I = {
+    menu:   '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>',
+    plus:   '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    clock:  '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+    gear:   '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+    x:      '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+    search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+    eye:    '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+    eyeOff: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="3" x2="21" y2="21"/>',
+    chev:   '<polyline points="6 9 12 15 18 9"/>',
+    up:     '<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>',
+    stop:   '<rect x="6" y="6" width="12" height="12" rx="2"/>',
+    edit:   '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
+    folder: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+    terminal:'<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>',
+    file:   '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+    globe:  '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+    phone:  '<rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>',
+    server: '<rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>',
+    link:   '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+    trash:  '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+    shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    alert:  '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+    lock:   '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    cat:    '<path d="M5.5 10.5 L5.5 4.5 L10 7.5 A7 7 0 0 1 14 7.5 L18.5 4.5 L18.5 10.5 A6.5 6.5 0 1 1 5.5 10.5 Z"/><line x1="9.2" y1="12.5" x2="9.2" y2="12.6"/><line x1="14.8" y1="12.5" x2="14.8" y2="12.6"/><path d="M10.5 16.5 q1.5 1.2 3 0"/>',
+    catFill:'<path fill="currentColor" stroke="none" d="M5 10 L5 4 L10.2 7.2 A7 7 0 0 1 13.8 7.2 L19 4 L19 10 A7 7 0 1 1 5 10 Z"/>',
+  };
+  const ic = (name, size) => {
+    const s = size || 18;
+    return svgWrap(I[name], name === 'catFill').replace('width="18" height="18"', 'width="' + s + '" height="' + s + '"');
+  };
+  const toolIcon = name => ({
+    run_command: 'terminal', read_file: 'file', write_file: 'edit', edit_file: 'edit',
+    list_dir: 'folder', search_files: 'search', web_fetch: 'globe',
+    android_device: 'phone', remote_server: 'server',
+  }[name] || 'terminal');
+
+  // расстановка иконок в статике
+  const setIcon = (id, name, size) => { const el = $(id); if (el) el.innerHTML = ic(name, size); };
+  setIcon('menu-btn', 'menu', 22);
+  setIcon('new-chat-btn', 'edit', 20);
+  setIcon('send-btn', 'up', 20);
+  setIcon('stop-btn', 'stop', 18);
+  document.querySelectorAll('.drawer .iconbtn, .sheet .iconbtn').forEach(b => { b.innerHTML = ic('x', 20); });
+  const drawerBtns = [
+    ['new-chat', 'plus', 'Новый чат'],
+    ['open-sessions', 'clock', 'История чатов'],
+    ['open-settings', 'gear', 'Настройки'],
+    ['open-providers', 'link', 'Провайдеры и аккаунты'],
+    ['open-servers', 'server', 'Серверы и хостинги (SSH/FTP)'],
+  ];
+  for (const [id, icon, label] of drawerBtns) {
+    const b = $(id);
+    if (b) b.innerHTML = ic(icon, 18) + '<span>' + label + '</span>';
+  }
+  const chev = document.querySelector('.brand-select .chev');
+  if (chev) chev.innerHTML = ic('chev', 14);
+  const wc = document.querySelector('.welcome-cat');
+  if (wc) wc.innerHTML = ic('catFill', 64);
+  const si = document.querySelector('.search-wrap input');
+  if (si) si.placeholder = 'Поиск по всем чатам…';
+
   // ---------------- утилиты ----------------
   let toastTimer = null;
   function toast(text, ms = 2600) {
@@ -80,7 +148,7 @@
     g.className = 'assistant-group';
     const av = document.createElement('div');
     av.className = 'cat-avatar';
-    av.textContent = '🐱';
+    av.innerHTML = ic('catFill', 17);
     const col = document.createElement('div');
     col.className = 'assistant-col';
     g.appendChild(av);
@@ -123,7 +191,7 @@
     t.className = 'tool open';
     const head = document.createElement('div');
     head.className = 'tool-head';
-    head.innerHTML = `<span class="t-name">🐾 ${esc(name)}</span><span class="t-arg">${esc(toolLabel(name, input))}</span><span class="t-status run">…</span>`;
+    head.innerHTML = `<span class="t-ic">${ic(toolIcon(name), 14)}</span><span class="t-name">${esc(name)}</span><span class="t-arg">${esc(toolLabel(name, input))}</span><span class="t-status run">…</span>`;
     const body = document.createElement('div');
     body.className = 'tool-body';
     body.innerHTML = '<pre>' + esc(JSON.stringify(input, null, 2).slice(0, 4000)) + '</pre>';
@@ -243,7 +311,7 @@
           working.remove();
           const a = document.createElement('div');
           a.className = 'approval';
-          a.innerHTML = `<div>🐾 Кот просит выполнить команду:</div><div class="cmd">${esc(ev.input?.command || JSON.stringify(ev.input))}</div>`;
+          a.innerHTML = `<div>${ic('shield', 15)} Кот просит выполнить команду:</div><div class="cmd">${esc(ev.input?.command || JSON.stringify(ev.input))}</div>`;
           const actions = document.createElement('div');
           actions.className = 'actions';
           const allow = document.createElement('button');
@@ -345,7 +413,7 @@
   function errBox(msg) {
     const div = document.createElement('div');
     div.className = 'msg error';
-    div.textContent = '😿 ' + msg;
+    div.innerHTML = ic('alert', 15) + ' ' + esc(msg);
     return div;
   }
 
@@ -397,8 +465,9 @@
   $('ns-eye').addEventListener('click', () => {
     const k = $('ns-secret');
     k.type = k.type === 'password' ? 'text' : 'password';
-    $('ns-eye').textContent = k.type === 'password' ? '👁' : '🙈';
+    $('ns-eye').innerHTML = ic(k.type === 'password' ? 'eye' : 'eyeOff', 16);
   });
+  setIcon('ns-eye', 'eye', 16);
   $('model-chip').addEventListener('click', () => { closeAll(); openModelSheet(); });
 
   async function openSessions() {
@@ -447,7 +516,7 @@
     item.className = 'session-item' + (s.id === state.sessionId ? ' selected' : '');
     item.innerHTML = `<div style="flex:1;min-width:0"><span class="s-title">${esc(s.title)}</span>` +
       (snippet ? `<div class="s-snippet">${esc(snippet)}</div>` : '') +
-      `</div><span class="s-meta">${d.toLocaleDateString('ru-RU')} ${d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</span><button class="s-del" title="Удалить">✕</button>`;
+      `</div><span class="s-meta">${d.toLocaleDateString('ru-RU')} ${d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</span><button class="s-del" title="Удалить">${ic('trash', 15)}</button>`;
     item.querySelector('.s-title').addEventListener('click', () => openSession(s.id));
     if (snippet) item.querySelector('.s-snippet').addEventListener('click', () => openSession(s.id));
     item.querySelector('.s-meta').addEventListener('click', () => openSession(s.id));
@@ -838,8 +907,9 @@
   $('np-eye').addEventListener('click', () => {
     const k = $('np-key');
     k.type = k.type === 'password' ? 'text' : 'password';
-    $('np-eye').textContent = k.type === 'password' ? '👁' : '🙈';
+    $('np-eye').innerHTML = ic(k.type === 'password' ? 'eye' : 'eyeOff', 16);
   });
+  setIcon('np-eye', 'eye', 16);
 
   // ---------------- тема ----------------
   function applyTheme() {
