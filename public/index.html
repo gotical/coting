@@ -79,6 +79,10 @@
       <span>Подтверждать shell-команды</span>
       <input id="approve-toggle" type="checkbox" />
     </label>
+    <label class="field row">
+      <span>☀ Светлая тема</span>
+      <input id="light-toggle" type="checkbox" />
+    </label>
     <button id="open-providers" class="drawer-btn" style="margin:0">🔗 Провайдеры и аккаунты</button>
     <p class="note">Когда включено подтверждение — перед каждой командой кот спросит разрешения. По умолчанию команды выполняются сразу.</p>
   </div>
@@ -102,8 +106,13 @@
         </select>
       </label>
       <label class="field"><span>Base URL</span><input id="np-url" type="text" placeholder="https://api.example.com" /></label>
-      <label class="field"><span>API-ключ</span><input id="np-key" type="password" placeholder="sk-…" /></label>
-      <label class="field"><span>Модели (через запятую)</span><input id="np-models" type="text" placeholder="model-a, model-b" /></label>
+      <label class="field"><span>API-ключ</span>
+        <span class="keywrap">
+          <input id="np-key" type="password" placeholder="sk-…" autocomplete="off" spellcheck="false" />
+          <button id="np-eye" class="eye" type="button" title="Показать ключ">👁</button>
+        </span>
+      </label>
+      <label class="field"><span>Модели (через запятую)</span><input id="np-models" type="text" placeholder="model-a, model-b" spellcheck="false" /></label>
       <div class="provider-actions">
         <button id="np-test" class="btn-ghost">Проверить</button>
         <button id="np-save" class="btn-accent">Сохранить</button>

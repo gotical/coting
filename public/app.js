@@ -672,8 +672,31 @@
     localStorage.setItem('coting.approve', state.approve ? '1' : '0');
   });
 
+  $('light-toggle').addEventListener('change', () => {
+    localStorage.setItem('coting.light', $('light-toggle').checked ? '1' : '0');
+    applyTheme();
+  });
+
+  $('np-eye').addEventListener('click', () => {
+    const k = $('np-key');
+    k.type = k.type === 'password' ? 'text' : 'password';
+    $('np-eye').textContent = k.type === 'password' ? '👁' : '🙈';
+  });
+
+  // ---------------- тема ----------------
+  function applyTheme() {
+    const light = localStorage.getItem('coting.light') === '1';
+    if (light) document.documentElement.setAttribute('data-theme', 'light');
+    else document.documentElement.removeAttribute('data-theme');
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', light ? '#FFFFFF' : '#212121');
+    const t = $('light-toggle');
+    if (t) t.checked = light;
+  }
+
   // ---------------- старт ----------------
   async function init() {
+    applyTheme();
     try {
       const r = await fetch('/api/providers');
       const d = await r.json();
