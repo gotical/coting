@@ -71,13 +71,45 @@ public class MainActivity extends Activity {
                 return !"127.0.0.1".equals(u.getHost());
             }
         });
-        web.setWebChromeClient(new WebChromeClient());
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView wv, android.webkit.ValueCallback<Uri[]> cb,
+                                             FileChooserParams params) {
+                try {
+                    Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                    i.addCategory(Intent.CATEGORY_OPENABLE);
+                    i.setType("*/*");
+                    i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                    startActivityForResult(Intent.createChooser(i, "Прикрепить файл"), 77);
+                    pendingChooser = cb;
+                    return true;
+                } catch (Exception e) {
+                    return false;
+                }
+            }
+        });
 
         setContentView(buildLayout());
         web.loadUrl(SERVER_URL);
         BridgeServer.ensure(this);
+        requestMediaPermissions();
         checkServer();
     }
+
+    /** Галерея/файлы: запрос на Android 13+ и на старых. */
+    private void requestMediaPermissions() {
+        try {
+            String perm = Build.VERSION.SDK_INT >= 33
+                    ? "android.permission.READ_MEDIA_IMAGES"
+                    : "android.permission.READ_EXTERNAL_STORAGE";
+            if (checkSelfPermission(perm) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{perm}, 101);
+            }
+        } catch (Exception e) { /* необязательно: прикрепление работает и через SAF */ }
+    }
+
+    /** file-input в чате: открываем системный выбор файлов (SAF, без прав). */
+
 
     private View buildLayout() {
         LinearLayout root = new LinearLayout(this);
@@ -286,6 +318,25 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             showOverlay(true, "не удалось: " + e.getMessage() + ". Открой Termux → coting start");
         }
+    }
+
+    private android.webkit.ValueCallback<Uri[]> pendingChooser;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 77 && pendingChooser != null) {
+            java.util.ArrayList<Uri> uris = new java.util.ArrayList<>();
+            if (data != null && data.getClipData() != null) {
+                for (int i = 0; i < data.getClipData().getItemCount(); i++)
+                    uris.add(data.getClipData().getItemAt(i).getUri());
+            } else if (data != null && data.getData() != null) {
+                uris.add(data.getData());
+            }
+            pendingChooser.onReceiveValue(uris.toArray(new Uri[0]));
+            pendingChooser = null;
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override

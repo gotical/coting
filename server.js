@@ -194,8 +194,22 @@ async function handleChat(req, res, body) {
   if (typeof approveCommands === 'boolean') session.approveCommands = approveCommands;
   if (body.cwd !== undefined) session.cwd = body.cwd ? String(body.cwd) : null;
 
-  // user-сообщение в сессию
-  session.messages.push({ role: 'user', content: text });
+  // user-сообщение в сессию (+ вложения: картинки → image-блоки, текст → text-блоки)
+  const atts = Array.isArray(body.attachments) ? body.attachments.slice(0, 8) : [];
+  if (atts.length) {
+    const blocks = [];
+    if (text) blocks.push({ type: 'text', text });
+    for (const a of atts) {
+      if (a.type === 'image' && a.mediaType && a.base64) {
+        blocks.push({ type: 'image', source: { type: 'base64', media_type: a.mediaType, data: a.base64 } });
+      } else if (a.type === 'text' && a.text) {
+        blocks.push({ type: 'text', text: '[файл ' + (a.name || 'file') + ']\n' + a.text });
+      }
+    }
+    session.messages.push({ role: 'user', content: blocks.length ? blocks : text });
+  } else {
+    session.messages.push({ role: 'user', content: text });
+  }
   if (session.title === 'Новый чат') {
     session.title = text.slice(0, 60) + (text.length > 60 ? '…' : '');
   }
@@ -317,6 +331,46 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/sessions' && req.method === 'GET') {
       return sendJson(res, 200, { sessions: listSessions() });
+    }
+
+    // ZIP проекта: zip -r в Download телефона (или fallback exports/)
+    if (p === '/api/zip' && req.method === 'POST') {
+      const body = await readBody(req, res);
+      const src = path.resolve(String(body.path || '.').replace(/^~(?=\/|$)/, process.env.HOME || '/data/data/com.termux/files/home'));
+      if (!fs.existsSync(src)) return sendJson(res, 400, { error: 'папка не найдена: ' + src });
+      const name = path.basename(src) + '_' + new Date().toISOString().slice(0, 10) + '.zip';
+      const dlDir = process.env.HOME + '/storage/shared/Download';
+      const outDir = fs.existsSync(dlDir) ? dlDir : path.join(ROOT, 'exports');
+      fs.mkdirSync(outDir, { recursive: true });
+      const out = path.join(outDir, name);
+      const { spawnSync } = require('child_process');
+      const r = spawnSync('zip', ['-rq', out, '.'], { cwd: src, timeout: 120000 });
+      if (r.status !== 0) return sendJson(res, 500, { error: 'zip не сработал (установи: pkg install zip): ' + (r.stderr || '') });
+      return sendJson(res, 200, { ok: true, file: out, bytes: fs.statSync(out).size });
+    }
+
+    // сохранить картинку из чата (data:URL или http-ссылка) в Download
+    if (p === '/api/save_image' && req.method === 'POST') {
+      const body = await readBody(req, res);
+      const src = String(body.url || '');
+      try {
+        const dlDir = process.env.HOME + '/storage/shared/Download';
+        const outDir = fs.existsSync(dlDir) ? dlDir : path.join(ROOT, 'exports');
+        fs.mkdirSync(outDir, { recursive: true });
+        const file = path.join(outDir, 'coting_' + Date.now() + '.png');
+        if (src.startsWith('data:')) {
+          fs.writeFileSync(file, Buffer.from(src.slice(src.indexOf(',') + 1), 'base64'));
+        } else if (/^https?:\/\//.test(src)) {
+          const r = await fetch(src, { signal: AbortSignal.timeout(30000) });
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          fs.writeFileSync(file, Buffer.from(await r.arrayBuffer()));
+        } else {
+          return sendJson(res, 400, { error: 'не картинка' });
+        }
+        return sendJson(res, 200, { ok: true, file, bytes: fs.statSync(file).size });
+      } catch (e) {
+        return sendJson(res, 500, { error: e.message });
+      }
     }
 
     // поиск по содержимому чатов: title + все текстовые части сообщений

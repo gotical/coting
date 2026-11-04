@@ -381,6 +381,7 @@ async function anthropicStream(opts) {
           onDelta(d.text || '');
         } else if (d.type === 'thinking_delta') {
           b.thinking = (b.thinking || '') + (d.thinking || '');
+          onDelta({ thinking: d.thinking || '' });
         } else if (d.type === 'input_json_delta') {
           b._json = (b._json || '') + (d.partial_json || '');
         }
@@ -452,9 +453,16 @@ function toOpenAIMessages(system, messages) {
       if (text || calls.length) out.push(msg);
       continue;
     }
-    // user: текст и/или tool_result-блоки
+    // user: текст, картинки и/или tool_result-блоки
+    const oaParts = [];
     const textParts = m.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
-    if (textParts) out.push({ role: 'user', content: textParts });
+    if (textParts) oaParts.push({ type: 'text', text: textParts });
+    for (const b of m.content) {
+      if (b.type === 'image' && b.source?.type === 'base64') {
+        oaParts.push({ type: 'image_url', image_url: { url: 'data:' + b.source.media_type + ';base64,' + b.source.data } });
+      }
+    }
+    if (oaParts.length) out.push({ role: 'user', content: oaParts.length === 1 && oaParts[0].type === 'text' ? oaParts[0].text : oaParts });
     for (const b of m.content) {
       if (b.type === 'tool_result') {
         out.push({ role: 'tool', tool_call_id: b.tool_use_id, content: String(b.content ?? '') });
@@ -523,6 +531,7 @@ async function openaiStream(opts) {
       if (!ch) continue;
       if (ch.finish_reason) stopReason = ch.finish_reason === 'tool_calls' ? 'tool_use' : 'end_turn';
       const d = ch.delta || {};
+      if (d.reasoning_content) onDelta({ thinking: d.reasoning_content });
       if (d.content) {
         text += d.content;
         onDelta(d.content);
@@ -630,7 +639,9 @@ async function agentRun(o) {
     try {
       stepRes = await streamMessage({
         provider, model, system, messages: msgs, signal,
-        onDelta: t => onEvent({ type: 'delta', text: t }),
+        onDelta: d => typeof d === 'string'
+          ? onEvent({ type: 'delta', text: d })
+          : onEvent({ type: 'thinking_delta', text: d.thinking }),
       });
     } catch (e) {
       if (e.name === 'AbortError') {

@@ -52,6 +52,7 @@
     alert:  '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
     lock:   '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
     cat:    '<path d="M5.5 10.5 L5.5 4.5 L10 7.5 A7 7 0 0 1 14 7.5 L18.5 4.5 L18.5 10.5 A6.5 6.5 0 1 1 5.5 10.5 Z"/><line x1="9.2" y1="12.5" x2="9.2" y2="12.6"/><line x1="14.8" y1="12.5" x2="14.8" y2="12.6"/><path d="M10.5 16.5 q1.5 1.2 3 0"/>',
+    clip:   '<path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>',
     catFill:'<path fill="currentColor" stroke="none" d="M5 10 L5 4 L10.2 7.2 A7 7 0 0 1 13.8 7.2 L19 4 L19 10 A7 7 0 1 1 5 10 Z"/>',
   };
   const ic = (name, size) => {
@@ -67,6 +68,7 @@
   // расстановка иконок в статике
   const setIcon = (id, name, size) => { const el = $(id); if (el) el.innerHTML = ic(name, size); };
   setIcon('menu-btn', 'menu', 22);
+  setIcon('attach-btn', 'clip', 20);
   setIcon('new-chat-btn', 'edit', 20);
   setIcon('send-btn', 'up', 20);
   setIcon('stop-btn', 'stop', 18);
@@ -132,11 +134,19 @@
     });
   }
 
-  function userMsg(text) {
+  function userMsg(text, atts) {
     hideWelcome();
     const div = document.createElement('div');
     div.className = 'msg user';
-    div.innerHTML = esc(text).replace(/\n/g, '<br>');
+    let html = '';
+    if (atts) {
+      for (const a of atts) {
+        if (a.type === 'image') html += `<img src="data:${a.mediaType};base64,${a.base64}" class="u-img" alt="">`;
+        else html += `<span class="u-file">${esc(a.name || 'файл')}</span> `;
+      }
+    }
+    if (text) html += esc(text).replace(/\n/g, '<br>');
+    div.innerHTML = html;
     messagesEl.appendChild(div);
     return div;
   }
@@ -168,6 +178,21 @@
   }
 
   function hideWelcome() { const w = $('welcome'); if (w) w.remove(); }
+
+  // клик по любой картинке в чате → сохранить в Download телефона
+  messagesEl.addEventListener('click', async ev => {
+    const img = ev.target.closest('img');
+    if (!img || !img.src || state.generating) return;
+    try {
+      const r = await fetch('/api/save_image', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ url: img.src }),
+      });
+      const j = await r.json();
+      toast(j.ok ? '✓ сохранено: ' + j.file.replace(/^.*\/storage\//, 'Download/') : '✗ ' + j.error);
+    } catch { toast('не удалось сохранить'); }
+  });
 
   let stickBottom = true;
   messagesEl.addEventListener('scroll', () => {
@@ -201,11 +226,81 @@
     return { el: t, statusEl: head.querySelector('.t-status'), bodyEl: body.querySelector('pre'), input, name };
   }
 
+  // ---------------- вложения (картинки и файлы) ----------------
+  const pending = []; // {type:'image', mediaType, base64, name} | {type:'text', text, name}
+
+  function renderChips() {
+    const box = $('attach-chips');
+    box.innerHTML = '';
+    box.hidden = !pending.length;
+    for (const [i, a] of pending.entries()) {
+      const chip = document.createElement('div');
+      chip.className = 'chip-a';
+      if (a.type === 'image') {
+        chip.innerHTML = `<img src="data:${a.mediaType};base64,${a.base64}" alt="">`;
+      } else {
+        chip.innerHTML = `<span class="c-name">${esc(a.name || 'файл')}</span>`;
+      }
+      const del = document.createElement('button');
+      del.className = 'c-del'; del.textContent = '×';
+      del.addEventListener('click', () => { pending.splice(i, 1); renderChips(); });
+      chip.appendChild(del);
+      box.appendChild(chip);
+    }
+  }
+
+  $('attach-btn').addEventListener('click', () => $('file-input').click());
+  $('file-input').addEventListener('change', () => {
+    for (const f of $('file-input').files) {
+      if (f.type.startsWith('image/')) {
+        const r = new FileReader();
+        r.onload = () => {
+          pending.push({ type: 'image', mediaType: f.type, base64: String(r.result).slice(String(r.result).indexOf(',') + 1), name: f.name });
+          renderChips();
+        };
+        r.readAsDataURL(f);
+      } else if (f.size <= 300 * 1024) {
+        const r = new FileReader();
+        r.onload = () => { pending.push({ type: 'text', text: String(r.result).slice(0, 80000), name: f.name }); renderChips(); };
+        r.readAsText(f);
+      } else {
+        toast(f.name + ': файл > 300 КБ — прикрепи текстом покороче');
+      }
+    }
+    $('file-input').value = '';
+  });
+
   // ---------------- чат: отправка и стрим ----------------
   function setGenerating(on) {
     state.generating = on;
     sendBtn.hidden = on;
     stopBtn.hidden = !on;
+    if (!on) setWork(null);
+  }
+
+  // статус действий как у «больших» агентов: что кот делает прямо сейчас
+  function humanTool(name, input) {
+    const i = input || {};
+    const host = (() => { try { return new URL(i.url).hostname; } catch { return i.url || ''; } })();
+    switch (name) {
+      case 'run_command': return 'выполняет: ' + (i.command || '').slice(0, 60);
+      case 'read_file': return 'читает ' + (i.path || '').split('/').pop();
+      case 'write_file': return 'создаёт ' + (i.path || '').split('/').pop();
+      case 'edit_file': return 'правит ' + (i.path || '').split('/').pop();
+      case 'list_dir': return 'смотрит папку ' + (i.path || '.').split('/').pop();
+      case 'search_files': return 'ищет: ' + (i.pattern || '');
+      case 'web_fetch': return 'лазает по интернету: ' + host;
+      case 'android_device': return 'управляет телефоном: ' + (i.action || '');
+      case 'remote_server': return 'сервер ' + (i.id || '') + ': ' + (i.action || '');
+      default: return name;
+    }
+  }
+  function setWork(text) {
+    const w = $('workline');
+    if (!w) return;
+    if (!text) { w.hidden = true; return; }
+    w.innerHTML = ic('chev', 12) + ' ' + esc(text);
+    w.hidden = false;
   }
 
   async function send() {
@@ -213,7 +308,7 @@
     if (!text || state.generating) return;
     inputEl.value = '';
     autoResize();
-    userMsg(text);
+    userMsg(text, pending.slice());
     scrollBottom(true);
 
     if (!state.sessionId) {
@@ -269,6 +364,29 @@
     };
 
     const toolBlocks = new Map();
+    let thinkEl = null, thinkBody = null, thinkLen = 0;
+
+    const ensureThinking = () => {
+      if (thinkEl) return;
+      working.remove();
+      thinkEl = document.createElement('div');
+      thinkEl.className = 'thinking';
+      const head = document.createElement('div');
+      head.className = 'th-head';
+      head.innerHTML = ic('chev', 12) + '<span>Размышления</span><span class="th-len"></span>';
+      head.addEventListener('click', () => thinkEl.classList.toggle('open'));
+      thinkBody = document.createElement('pre');
+      thinkBody.className = 'th-body';
+      thinkEl.appendChild(head); thinkEl.appendChild(thinkBody);
+      col.appendChild(thinkEl);
+    };
+    const addThinking = t => {
+      ensureThinking();
+      thinkLen += t.length;
+      thinkBody.textContent += t;
+      thinkEl.querySelector('.th-len').textContent = '· ' + thinkLen + ' симв.';
+      scrollBottom();
+    };
 
     const onEvent = ev => {
       switch (ev.type) {
@@ -280,9 +398,13 @@
           curText += ev.text;
           scheduleRender();
           break;
+        case 'thinking_delta':
+          addThinking(ev.text);
+          break;
         case 'tool_start': {
           finalizeSegment();
           working.remove();
+          setWork(humanTool(ev.name, ev.input));
           const tb = toolCard(ev.name, ev.input);
           col.appendChild(tb.el);
           toolBlocks.set(ev.id, tb);
@@ -290,8 +412,18 @@
           break;
         }
         case 'tool_end': {
+          setWork(null);
           const tb = toolBlocks.get(ev.id);
           if (!tb) break;
+          // diff для правок: что удалил и что добавил
+          if (tb.name === 'edit_file' && tb.input && typeof tb.input.old_string === 'string') {
+            const rows = [];
+            for (const l of tb.input.old_string.split('\n')) rows.push('<span class="d-del">− ' + esc(l) + '</span>');
+            for (const l of String(tb.input.new_string ?? '').split('\n')) rows.push('<span class="d-add">+ ' + esc(l) + '</span>');
+            tb.bodyEl.innerHTML = rows.join('\n');
+            scrollBottom();
+            break;
+          }
           if (ev.denied) {
             tb.statusEl.textContent = 'отклонено';
             tb.statusEl.className = 't-status fail';
@@ -360,6 +492,7 @@
         body: JSON.stringify({
           sessionId: state.sessionId,
           message: text,
+          attachments: pending.slice(),
           provider: state.providerId,
           model: state.model,
           approveCommands: state.approve,
@@ -372,6 +505,8 @@
         const j = await resp.json().catch(() => ({}));
         throw new Error(j.error || 'HTTP ' + resp.status);
       }
+      pending.length = 0;
+      renderChips();
 
       const reader = resp.body.getReader();
       const dec = new TextDecoder();
@@ -461,6 +596,21 @@
   $('open-providers').addEventListener('click', () => { closeAll(); openProviders(); });
   $('providers-close').addEventListener('click', closeAll);
   $('open-servers').addEventListener('click', () => { closeAll(); openServers(); });
+  $('zip-project').addEventListener('click', async () => {
+    closeAll();
+    const dir = state.cwd || '/data/data/com.termux/files/home';
+    toast('архивирую ' + dir.split('/').pop() + '…');
+    try {
+      const r = await fetch('/api/zip', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ path: dir }),
+      });
+      const j = await r.json();
+      if (j.ok) toast('📦 готово: Download/' + j.file.split('/').pop() + ' (' + Math.round(j.bytes / 1024) + ' КБ)', 5000);
+      else toast('✗ ' + j.error);
+    } catch { toast('ошибка архивации'); }
+  });
   $('servers-close').addEventListener('click', closeAll);
   $('ns-eye').addEventListener('click', () => {
     const k = $('ns-secret');
@@ -565,6 +715,13 @@
       let col = null;
       const ensureCol = () => { if (!col) col = assistantGroup(); return col; };
 
+      const renderImage = src => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = 'c-img';
+        img.title = 'нажми — сохранить в Download';
+        ensureCol().appendChild(img);
+      };
       for (const m of s.messages) {
         if (typeof m.content === 'string') {
           if (m.role === 'user') { userMsg(m.content); col = null; }
@@ -574,6 +731,15 @@
         for (const b of m.content) {
           if (b.type === 'text' && b.text) {
             textSegment(ensureCol(), md(b.text));
+          } else if (b.type === 'image' && b.source?.data) {
+            renderImage('data:' + (b.source.media_type || 'image/png') + ';base64,' + b.source.data);
+          } else if (b.type === 'thinking' && b.thinking) {
+            const t = document.createElement('div');
+            t.className = 'thinking';
+            t.innerHTML = `<div class="th-head">${ic('chev', 12)}<span>Размышления</span><span class="th-len">· ${b.thinking.length} симв.</span></div><pre class="th-body"></pre>`;
+            t.querySelector('.th-body').textContent = b.thinking;
+            t.querySelector('.th-head').addEventListener('click', () => t.classList.toggle('open'));
+            ensureCol().appendChild(t);
           } else if (b.type === 'tool_use') {
             const tb = toolCard(b.name, b.input);
             const out = outputs.get(b.id);
