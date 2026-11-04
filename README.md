@@ -21,7 +21,7 @@ Anthropic- / OpenAI-совместимый API со своим ключом).
 ## Установка в Termux (чистый телефон)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/RybinskLab/coting/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/gotical/coting/main/install.sh | bash
 ```
 
 Скрипт сам поставит nodejs/ripgrep/git, скачает сервер, пропишет доступы и запустит чат.

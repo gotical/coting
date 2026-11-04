@@ -4,11 +4,11 @@
 # © 2026 RybinskLab (ИП Усачёв Д.Е.) — https://rybinsklab.ru
 #
 # Запуск на устройстве:
-#   curl -fsSL https://raw.githubusercontent.com/RybinskLab/coting/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/gotical/coting/main/install.sh | bash
 set -e
 
-REPO="https://github.com/RybinskLab/coting"
-RAW="https://raw.githubusercontent.com/RybinskLab/coting/main"
+REPO="https://github.com/gotical/coting"
+RAW="https://raw.githubusercontent.com/gotical/coting/main"
 
 echo "🐾 Coting — установка в Termux"
 echo "──────────────────────────────"
