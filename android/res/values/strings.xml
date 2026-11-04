@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Coting</string>
+    <string name="a11y_desc">Позволяет агенту Coting тапать, свайпать, читать текст экрана и делать скриншоты — только по твоим командам из чата.</string>
+</resources>

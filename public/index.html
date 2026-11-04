@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#212121" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" href="/icons/favicon-64.png" />
+<link rel="apple-touch-icon" href="/icons/icon-192.png" />
+<title>Coting</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="vendor/hljs.min.css" />
+</head>
+<body>
+<header class="topbar">
+  <button id="menu-btn" class="iconbtn" title="Меню">☰</button>
+  <button id="model-chip" class="brand-select">Coting <span class="chev">▾</span></button>
+  <button id="new-chat-btn" class="iconbtn" title="Новый чат">✎</button>
+</header>
+
+<main id="messages" class="messages">
+  <div id="welcome" class="welcome">
+    <div class="welcome-cat">🐱</div>
+    <h1>Coting</h1>
+    <p class="tagline">Кодинг-кот в Termux. Мяу!</p>
+    <p class="hint">Пишет и правит файлы, гоняет команды, ловит баги.<br>Рабочая папка — 📁 в настройках меню.</p>
+  </div>
+</main>
+
+<footer class="composer-wrap">
+  <div class="composer">
+    <textarea id="input" rows="1" placeholder="Спроси Coting…"></textarea>
+    <button id="send-btn" class="send" title="Отправить">↑</button>
+    <button id="stop-btn" class="stop" hidden title="Остановить">■</button>
+  </div>
+</footer>
+
+<aside id="drawer" class="drawer">
+  <div class="drawer-header">
+    <span class="drawer-brand">🐱 Coting</span>
+    <button id="drawer-close" class="iconbtn">×</button>
+  </div>
+  <button id="new-chat" class="drawer-btn">✎ Новый чат</button>
+  <button id="open-sessions" class="drawer-btn">📁 История чатов</button>
+  <button id="open-settings" class="drawer-btn">⚙ Настройки</button>
+  <div class="drawer-section" id="drawer-info">—</div>
+  <div class="drawer-paw">Мяу-мяу 🐾<br><a href="https://rybinsklab.ru" target="_blank" style="color:var(--text-muted)">© 2026 RybinskLab · rybinsklab.ru</a></div>
+</aside>
+
+<aside id="model-sheet" class="sheet" hidden>
+  <div class="sheet-header">
+    <span>Модель</span>
+    <button id="sheet-close" class="iconbtn">×</button>
+  </div>
+  <div id="model-list" class="model-list"></div>
+</aside>
+
+<aside id="sessions-sheet" class="sheet" hidden>
+  <div class="sheet-header">
+    <span>История чатов</span>
+    <button id="sessions-close" class="iconbtn">×</button>
+  </div>
+  <div id="sessions-list" class="sessions-list"></div>
+</aside>
+
+<aside id="settings-sheet" class="sheet" hidden>
+  <div class="sheet-header">
+    <span>Настройки</span>
+    <button id="settings-close" class="iconbtn">×</button>
+  </div>
+  <div class="settings-body">
+    <label class="field">
+      <span>Рабочая папка проекта 📁</span>
+      <input id="cwd-input" type="text" placeholder="/data/data/com.termux/files/home" />
+    </label>
+    <label class="field row">
+      <span>Подтверждать shell-команды</span>
+      <input id="approve-toggle" type="checkbox" />
+    </label>
+    <button id="open-providers" class="drawer-btn" style="margin:0">🔗 Провайдеры и аккаунты</button>
+    <p class="note">Когда включено подтверждение — перед каждой командой кот спросит разрешения. По умолчанию команды выполняются сразу.</p>
+  </div>
+</aside>
+
+<aside id="providers-sheet" class="sheet" hidden>
+  <div class="sheet-header">
+    <span>Провайдеры и аккаунты</span>
+    <button id="providers-close" class="iconbtn">×</button>
+  </div>
+  <div class="settings-body" style="padding-top:8px">
+    <div id="providers-list" class="providers-list"></div>
+    <p class="note">Встроенные (метка zcode) читаются из ~/.zcode/v2/provider_config.json и доступны всем твоим инструментам сразу. Свои — добавляй ниже: Anthropic- или OpenAI-совместимый API.</p>
+    <div class="add-provider">
+      <div class="provider-form-title">＋ Свой провайдер</div>
+      <label class="field"><span>Название</span><input id="np-name" type="text" placeholder="Мой шлюз" /></label>
+      <label class="field"><span>API-тип</span>
+        <select id="np-api">
+          <option value="anthropic">Anthropic Messages (/v1/messages)</option>
+          <option value="openai">OpenAI-совместимый (/v1/chat/completions)</option>
+        </select>
+      </label>
+      <label class="field"><span>Base URL</span><input id="np-url" type="text" placeholder="https://api.example.com" /></label>
+      <label class="field"><span>API-ключ</span><input id="np-key" type="password" placeholder="sk-…" /></label>
+      <label class="field"><span>Модели (через запятую)</span><input id="np-models" type="text" placeholder="model-a, model-b" /></label>
+      <div class="provider-actions">
+        <button id="np-test" class="btn-ghost">Проверить</button>
+        <button id="np-save" class="btn-accent">Сохранить</button>
+      </div>
+      <div id="np-status" class="np-status" hidden></div>
+    </div>
+  </div>
+</aside>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="vendor/marked.min.js"></script>
+<script src="vendor/hljs.min.js"></script>
+<script src="vendor/dompurify.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

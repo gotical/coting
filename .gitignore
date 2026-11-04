@@ -1,0 +1,17 @@
+# секреты и локальное состояние
+sessions/
+tmp/
+screens/
+*.log
+gefest.log
+coting.log
+
+# APK-сборка (android/)
+android/build/
+android/keystore.jks
+android/*.apk
+android/*.idsig
+
+# ключи не должны попадать в репо
+**/keystore*.jks
+**/debug.keystore

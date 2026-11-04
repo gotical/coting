@@ -1,0 +1,22 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# cotingd — запуск/остановка сервера Coting (для RUN_COMMAND из APK и boot-скриптов)
+PORT=8395
+LOG="$HOME/coting/coting.log"
+
+case "${1:-start}" in
+  start)
+    if curl -sf -m 2 "http://127.0.0.1:$PORT/api/health" | grep -q '"ok":true'; then
+      exit 0   # уже работает
+    fi
+    nohup node "$HOME/coting/server.js" >> "$LOG" 2>&1 &
+    # ждём health до 10с (RUN_COMMAND BACKGROUND не любит долгих выводов)
+    for i in $(seq 1 20); do
+      sleep 0.5
+      curl -sf -m 2 "http://127.0.0.1:$PORT/api/health" | grep -q '"ok":true' && exit 0
+    done
+    exit 1
+    ;;
+  stop)
+    pkill -f "node .*coting/server\.js" 2>/dev/null
+    ;;
+esac

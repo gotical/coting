@@ -1,0 +1,71 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# coting — управление кодинг-агентом Coting (веб-UI на 127.0.0.1:8395)
+DIR="$HOME/coting"
+PORT=8395
+LOG="$DIR/coting.log"
+PID=$(pgrep -f "node.*$DIR/server\.js" | head -1)
+
+case "${1:-status}" in
+  start)
+    if [ -n "$PID" ]; then
+      echo "уже запущен (pid $PID) — http://127.0.0.1:$PORT"
+      exit 0
+    fi
+    cd "$DIR" || exit 1
+    nohup node "$DIR/server.js" >> "$LOG" 2>&1 &
+    sleep 1
+    if curl -sf -o /dev/null "http://127.0.0.1:$PORT/api/health"; then
+      echo "запущен: http://127.0.0.1:$PORT (лог: $LOG)"
+    else
+      echo "не поднялся за 1с, смотри $LOG" >&2
+      exit 1
+    fi
+    ;;
+  stop)
+    if [ -n "$PID" ]; then
+      kill "$PID" && echo "остановлен (pid $PID)"
+    else
+      echo "не запущен"
+    fi
+    ;;
+  restart)
+    "$0" stop >/dev/null 2>&1
+    sleep 0.5
+    "$0" start
+    ;;
+  status)
+    if [ -n "$PID" ] && curl -sf -o /dev/null "http://127.0.0.1:$PORT/api/health"; then
+      echo "работает (pid $PID) — http://127.0.0.1:$PORT"
+    elif [ -n "$PID" ]; then
+      echo "процесс есть (pid $PID), но API не отвечает"
+    else
+      echo "не запущен"
+    fi
+    ;;
+  log)
+    tail -n "${2:-30}" "$LOG"
+    ;;
+  web)
+    # открыть веб-интерфейс в браузере (поднимет сервер, если не запущен)
+    "$0" start >/dev/null 2>&1
+    echo "открываю http://127.0.0.1:$PORT …"
+    termux-open "http://127.0.0.1:$PORT" 2>/dev/null || \
+      termux-open-url "http://127.0.0.1:$PORT" 2>/dev/null || \
+      xdg-open "http://127.0.0.1:$PORT" 2>/dev/null || \
+      echo "не удалось открыть браузер — открой вручную: http://127.0.0.1:$PORT"
+    ;;
+  provider)
+    node "$DIR/cli.js" provider "${@:2}"
+    ;;
+  *)
+    echo "Coting — открытый кодинг-агент для Termux/смартфонов"
+    echo "© 2026 RybinskLab (ИП Усачёв Д.Е.) — https://rybinsklab.ru"
+    echo
+    echo "использование: coting {start|stop|restart|status|web|log [N]}"
+    echo "               coting provider {list|add|del|test}"
+    echo
+    echo "  coting start   — сервер API+веб на http://127.0.0.1:$PORT"
+    echo "  coting web     — сразу открыть веб-чат в браузере"
+    echo "  coting status  — что сейчас работает"
+    ;;
+esac
