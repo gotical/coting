@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coting 🐱 — AI-агент для кодинга и системного администрирования на смартфоне | Termux + веб + Android APK</title>
+<meta name="description" content="Coting (Котинк) — автономный кодинг-агент с ИИ, созданный для смартфонов. Работает в Termux (CLI), имеет веб-интерфейс и Android-приложение. Пишет код, управляет телефоном, подключается к серверам по SSH. Скачай APK бесплатно.">
+<meta name="keywords" content="coting, кодинг агент, ии агент android, termux агент, агент для смартфонов, ai coding agent android, ssh агент, скачать apk, rybinsklab">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://rybinsklab.ru/coting/">
+<meta name="theme-color" content="#212121">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RybinskLab">
+<meta property="og:title" content="Coting — AI-агент для смартфонов: кодинг + администрирование">
+<meta property="og:description" content="Автономный агент с ИИ целиком в твоём телефоне: CLI в Termux, веб-интерфейс и Android APK. Пишет код, лазает по интернету, управляет телефоном и серверами.">
+<meta property="og:url" content="https://rybinsklab.ru/coting/">
+<meta property="og:image" content="https://rybinsklab.ru/coting/og.png">
+<meta property="og:locale" content="ru_RU">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Coting — AI-агент для смартфонов">
+<meta name="twitter:description" content="Кодинг + системное администрирование с ИИ прямо на телефоне: Termux CLI, веб и APK.">
+<meta name="twitter:image" content="https://rybinsklab.ru/coting/og.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Coting",
+  "operatingSystem": "Android, Termux",
+  "applicationCategory": "DeveloperApplication",
+  "description": "AI-агент для кодинга и системного администрирования, созданный исключительно для смартфонов. Работает в Termux (CLI), имеет веб-интерфейс и Android-приложение.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB" },
+  "softwareVersion": "0.1.0-beta",
+  "downloadUrl": "https://rybinsklab.ru/coting/coting.apk",
+  "url": "https://rybinsklab.ru/coting/",
+  "author": { "@type": "Organization", "name": "RybinskLab", "url": "https://rybinsklab.ru" }
+}
+</script>
+<style>
+:root{
+  --bg:#141416; --bg2:#1c1c20; --card:#1f1f24; --card2:#26262c;
+  --line:#2e2e36; --txt:#EDEDEF; --muted:#9A9AA6;
+  --acc:#FF9F43; --acc2:#EB6416; --ok:#4ADE80; --mono:ui-monospace,"JetBrains Mono","Droid Sans Mono",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:16px;line-height:1.6;overflow-x:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+a{color:var(--acc);text-decoration:none}
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+
+/* ---------- анимированный фон ---------- */
+.blobs{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.35;animation:drift 18s ease-in-out infinite alternate}
+.b1{width:52vw;height:52vw;background:#b34700;top:-18vw;left:-12vw}
+.b2{width:44vw;height:44vw;background:#7a2f00;bottom:-16vw;right:-10vw;animation-delay:-6s}
+.b3{width:30vw;height:30vw;background:#ff9f43;top:38%;left:58%;opacity:.14;animation-delay:-11s}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(6vw,4vw) scale(1.18)}}
+.paw{position:fixed;color:rgba(255,159,67,.06);z-index:-1;animation:floatPaw linear infinite;pointer-events:none;font-size:28px}
+@keyframes floatPaw{from{transform:translateY(105vh) rotate(0)}to{transform:translateY(-10vh) rotate(60deg)}}
+
+/* ---------- навигация ---------- */
+nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(20,20,22,.72);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:16px;padding-top:13px;padding-bottom:13px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:18px;color:var(--txt)}
+.logo svg{width:30px;height:30px;border-radius:9px}
+.navlinks{margin-left:auto;display:flex;gap:6px;align-items:center}
+.navlinks a{color:var(--muted);font-size:14px;padding:7px 11px;border-radius:9px;transition:.2s}
+.navlinks a:hover{color:var(--txt);background:var(--card)}
+.gh-btn{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);color:var(--txt)!important;font-weight:600;font-size:13.5px;padding:8px 14px;border-radius:999px;transition:.2s}
+.gh-btn:hover{border-color:var(--acc);transform:translateY(-1px)}
+@media(max-width:700px){.navlinks a:not(.gh-btn){display:none}}
+
+/* ---------- hero ---------- */
+.hero{padding:74px 0 56px;display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
+@media(max-width:900px){.hero{grid-template-columns:1fr;padding-top:44px}}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,159,67,.12);border:1px solid rgba(255,159,67,.35);color:var(--acc);font-size:12.5px;font-weight:700;padding:6px 13px;border-radius:999px;letter-spacing:.4px;animation:pulseB 2.6s ease-in-out infinite}
+@keyframes pulseB{0%,100%{box-shadow:0 0 0 0 rgba(255,159,67,.35)}50%{box-shadow:0 0 0 9px rgba(255,159,67,0)}}
+h1{font-size:clamp(34px,5.4vw,58px);line-height:1.08;font-weight:900;margin:16px 0 6px;letter-spacing:-.5px}
+h1 .grad{background:linear-gradient(92deg,#ffb056 10%,#eb6416 60%,#ffcf8e);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shine 5s linear infinite}
+@keyframes shine{to{background-position:220% 0}}
+.sub{color:var(--muted);font-size:clamp(15px,1.7vw,18.5px);max-width:520px;margin:14px 0 26px}
+.sub b{color:var(--txt)}
+.cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:15px;padding:13px 22px;border-radius:14px;border:none;cursor:pointer;transition:.22s;position:relative;overflow:hidden}
+.btn-acc{background:linear-gradient(135deg,#FFB056,#EB6416);color:#161616}
+.btn-acc:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(235,100,22,.4)}
+.btn-acc::after{content:"";position:absolute;top:0;left:-120%;width:60%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);animation:sweep 3.4s ease-in-out infinite}
+@keyframes sweep{0%{left:-120%}45%,100%{left:130%}}
+.btn-ghost{background:var(--card);border:1px solid var(--line);color:var(--txt)}
+.btn-ghost:hover{border-color:var(--acc);transform:translateY(-2px)}
+.counter-line{margin-top:18px;color:var(--muted);font-size:13.5px;display:flex;align-items:center;gap:8px}
+.counter-line b{color:var(--acc);font-size:16px;font-variant-numeric:tabular-nums;transition:.4s}
+.counter-line.bump b{transform:scale(1.35);display:inline-block}
+
+/* терминал в hero */
+.term{background:#0c0c0f;border:1px solid var(--line);border-radius:18px;box-shadow:0 26px 70px rgba(0,0,0,.55);overflow:hidden;transform:perspective(1200px) rotateY(-7deg) rotateX(2deg);transition:.5s;animation:termFloat 7s ease-in-out infinite}
+.term:hover{transform:perspective(1200px) rotateY(0) rotateX(0)}
+@keyframes termFloat{0%,100%{translate:0 0}50%{translate:0 -12px}}
+.term-head{display:flex;align-items:center;gap:7px;padding:11px 15px;background:#16161a;border-bottom:1px solid var(--line)}
+.tdot{width:11px;height:11px;border-radius:50%}
+.term-title{margin-left:6px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.term-body{padding:16px 16px 18px;font-family:var(--mono);font-size:13.5px;line-height:1.75;min-height:184px;white-space:pre-wrap;word-break:break-word}
+.term-body .p{color:var(--acc)}
+.term-body .o{color:var(--muted)}
+.term-body .g{color:var(--ok)}
+.cursor{display:inline-block;width:8px;height:16px;background:var(--acc);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ---------- секции ---------- */
+section{padding:64px 0}
+.sec-title{font-size:clamp(26px,3.6vw,40px);font-weight:900;text-align:center;letter-spacing:-.4px}
+.sec-sub{color:var(--muted);text-align:center;max-width:640px;margin:12px auto 44px;font-size:16px}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.3,1),transform .7s cubic-bezier(.2,.7,.3,1)}
+.reveal.on{opacity:1;transform:none}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:880px){.grid3{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 24px;transition:.28s;position:relative}
+.card:hover{transform:translateY(-6px);border-color:rgba(255,159,67,.55);box-shadow:0 18px 44px rgba(0,0,0,.4)}
+.card .ic{width:46px;height:46px;border-radius:13px;background:rgba(255,159,67,.14);display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:var(--acc)}
+.card .ic svg{width:23px;height:23px}
+.card h3{font-size:19px;margin-bottom:8px}
+.card p{color:var(--muted);font-size:14.5px}
+.tag{position:absolute;top:16px;right:16px;font-size:11px;font-weight:800;letter-spacing:.5px;padding:4px 10px;border-radius:999px;background:rgba(74,222,128,.14);color:var(--ok)}
+
+/* фичи */
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:880px){.feat{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.feat{grid-template-columns:1fr}}
+.f{display:flex;gap:13px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px 16px;transition:.25s}
+.f:hover{border-color:var(--acc);transform:translateY(-3px)}
+.f .ic{flex-shrink:0;width:38px;height:38px;border-radius:11px;background:rgba(255,159,67,.14);display:flex;align-items:center;justify-content:center;color:var(--acc)}
+.f .ic svg{width:19px;height:19px}
+.f b{display:block;font-size:15px;margin-bottom:3px}
+.f span{color:var(--muted);font-size:13.3px;line-height:1.45;display:block}
+
+/* установка */
+.install{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:880px){.install{grid-template-columns:1fr}}
+.step{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px 22px}
+.step .num{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#FFB056,#EB6416);color:#161616;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:14px}
+.step h3{font-size:17.5px;margin-bottom:7px}
+.step p{color:var(--muted);font-size:14px;margin-bottom:14px}
+.codebox{background:#0c0c0f;border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-family:var(--mono);font-size:12.5px;color:#e8e8ea;position:relative;display:flex;justify-content:space-between;gap:10px;align-items:center;word-break:break-all}
+.copy{flex-shrink:0;background:var(--card2);border:1px solid var(--line);color:var(--muted);font-size:11px;font-family:inherit;padding:6px 10px;border-radius:8px;cursor:pointer;transition:.2s}
+.copy:hover{color:var(--txt);border-color:var(--acc)}
+.cmds{margin-top:12px;font-family:var(--mono);font-size:12.5px;color:var(--muted);line-height:2}
+.cmds b{color:var(--acc);font-weight:600}
+
+/* download */
+.dl-card{background:linear-gradient(160deg,var(--card) 60%,rgba(235,100,22,.12));border:1px solid var(--line);border-radius:26px;padding:44px 30px;text-align:center;position:relative;overflow:hidden}
+.dl-card::before{content:"🐾";position:absolute;font-size:190px;opacity:.045;right:-30px;top:-46px;transform:rotate(-18deg)}
+.dl-meta{color:var(--muted);font-size:13.5px;margin:10px 0 26px}
+.dl-meta b{color:var(--txt)}
+.dl-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.dl-note{margin-top:22px;color:var(--muted);font-size:12.5px}
+.big-count{font-size:40px;font-weight:900;background:linear-gradient(120deg,#FFB056,#EB6416);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-variant-numeric:tabular-nums}
+
+/* приватность / faq */
+.priv{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:880px){.priv{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.priv{grid-template-columns:1fr}}
+.pv{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;font-size:13.5px;color:var(--muted)}
+.pv b{color:var(--txt);display:block;margin-bottom:4px;font-size:14.5px}
+
+footer{border-top:1px solid var(--line);padding:34px 0 44px;margin-top:30px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;color:var(--muted);font-size:13.5px}
+footer a{color:var(--muted)}footer a:hover{color:var(--acc)}
+
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01s!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+
+<div class="blobs"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<nav>
+  <div class="wrap">
+    <span class="logo">
+      <svg viewBox="0 0 24 24"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB056"/><stop offset="1" stop-color="#EB6416"/></linearGradient></defs><path fill="url(#lg)" d="M5 10 L5 4 L10.2 7.2 A7 7 0 0 1 13.8 7.2 L19 4 L19 10 A7 7 0 1 1 5 10 Z"/></svg>
+      Coting
+    </span>
+    <div class="navlinks">
+      <a href="#vozmozhnosti">Возможности</a>
+      <a href="#formas">Формы</a>
+      <a href="#ustanovka">Установка</a>
+      <a href="#skachat">Скачать</a>
+      <a class="gh-btn" href="https://github.com/gotical/coting" target="_blank" rel="noopener" onclick="dl('github')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-1.96c-3.2.7-3.87-1.54-3.87-1.54-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.68.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </div>
+</nav>
+
+<header class="wrap hero">
+  <div>
+    <span class="badge">🐱 v0.1.0-beta · открытым исходным кодом</span>
+    <h1>Coding-агент<br><span class="grad">для смартфонов</span></h1>
+    <p class="sub"><b>Coting (Котинк)</b> — автономный ИИ-агент для кодинга и системного администрирования, созданный <b>исключительно для телефонов</b>. Пишет и правит код, выполняет команды, лазает по интернету, управляет самим смартфоном и твоими серверами по SSH — целиком локально, в Termux.</p>
+    <div class="cta">
+      <a class="btn btn-acc" href="coting.apk" download onclick="dl('apk')">📥 Скачать APK</a>
+      <a class="btn btn-ghost" href="https://github.com/gotical/coting/releases/latest" target="_blank" rel="noopener" onclick="dl('github')">Скачать с GitHub</a>
+      <a class="btn btn-ghost" href="#ustanovka">⌨ Только CLI</a>
+    </div>
+    <div class="counter-line" id="counterLine">📥 скачиваний: <b id="dlCount">…</b></div>
+  </div>
+  <div class="term" aria-hidden="true">
+    <div class="term-head">
+      <span class="tdot" style="background:#ff5f57"></span><span class="tdot" style="background:#febc2e"></span><span class="tdot" style="background:#28c840"></span>
+      <span class="term-title">u0_a340@Poco: ~/проект — Coting</span>
+    </div>
+    <div class="term-body" id="termBody"></div>
+  </div>
+</header>
+
+<section id="formas">
+  <div class="wrap">
+    <h2 class="sec-title reveal">Три формы — один кот 🐾</h2>
+    <p class="sec-sub reveal">Работай как удобно: чистый терминал, браузер или нативное приложение. Всё — один и тот же агент на 127.0.0.1.</p>
+    <div class="grid3">
+      <div class="card reveal"><span class="tag">без APK</span>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div>
+        <h3>📟 CLI в Termux</h3>
+        <p>Установка одной командой <code>curl … | bash</code>. Управление: <b>coting start / web / status</b>, провайдеры: <b>coting provider list / add / test</b>. Сервер, чат и весь агент живут в терминале телефона — приложение не требуется.</p>
+      </div>
+      <div class="card reveal"><span class="tag">PWA</span>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg></div>
+        <h3>🌐 Веб-интерфейс</h3>
+        <p>Команда <b>coting web</b> открывает чат в стиле ChatGPT: стриминг ответов, спойлер размышлений, вложения, история с поиском, светлая/тёмная тема. Можно добавить на главный экран как PWA.</p>
+      </div>
+      <div class="card reveal"><span class="tag">29 КБ</span>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+        <h3> Android-приложение</h3>
+        <p>Кнопка «🐾 Запустить сервер в Termux» поднимает всё сама. Плюс управление телефоном: жесты и скриншоты (Accessibility), блокировка экрана (Device Admin), доступ к галерее и файлам, инструкция и настройка провайдеров.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="vozmozhnosti">
+  <div class="wrap">
+    <h2 class="sec-title reveal">Что умеет кот</h2>
+    <p class="sec-sub reveal">9 инструментов агента, мульти-провайдер и приватность по умолчанию.</p>
+    <div class="feat">
+      <div class="f reveal"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span><span><b>Shell, файлы, код</b><span>Выполняет команды, читает/пишет/правит файлы, ищет по проекту ripgrep'ом. Полноценный кодинг в папке проекта.</span></span></div>
+      <div class="f reveal"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg></span><span><b>Серверы SSH / SFTP / FTP</b><span>«Проверь диск на моём VPS», «залей build на хостинг» — агент подключается к аккаунтам из настроек и делает.</span></span></div>
+      <div class="f reveal"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/></svg></span><span><b>Управляет телефоном</b><span>Тапы, свайпы, чтение текста экрана, скриншоты, системные кнопки, блокировка — с твоего явного согласия.</span></span></div>
+      <div class="f reveal"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span><b>Лазает по интернету</b><span>web_fetch изучает страницы и API (под UA мобильного Яндекс.Браузера). Статус «изучаю example.com…» виден в чате.</span></span></div>
+      <div class="f reveal"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span><b>Мультимодальность</b><span>Прикрепи картинку или файл: «сделай сайт как на макете», «составь договор по образцу». Ответы с diff-подсветкой правок.</span></span></div>
+      <div class="f reveal"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span><span><b>Мульти-провайдер</b><span>z.ai, Alibaba, Gemini-прокси, TokenWave + любой свой Anthropic/OpenAI-совместимый API. Выбор модели в один тап.</span></span></div>
+      <div class="f reveal"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span><span><b>Безопасность</b><span>Всё на 127.0.0.1, ключи не покидают устройство, подтверждение shell-команд, скрытых режимов нет.</span></span></div>
+      <div class="f reveal"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span><b>История и поиск</b><span>Все чаты сохраняются и переживают рестарты; поиск по содержимому найдёт тот разговор про nginx.</span></span></div>
+      <div class="f reveal"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span><span><b>Экспорт</b><span>Проект — ZIP'ом в Download, картинки из чата — в один тап, код — кнопкой «копировать».</span></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="ustanovka">
+  <div class="wrap">
+    <h2 class="sec-title reveal">Установка</h2>
+    <p class="sec-sub reveal">Нужен только Termux. Всё остальное — одна команда.</p>
+    <div class="install">
+      <div class="step reveal">
+        <div class="num">1</div>
+        <h3>Termux (официальный)</h3>
+        <p>Скачай Termux из F-Droid — не из Play Маркет (устаревшая сборка).</p>
+        <div class="codebox"><a id="fd" href="https://f-droid.org/packages/com.termux/" target="_blank" rel="noopener" style="color:#e8e8ea">📲 f-droid.org/packages/com.termux ↗</a><button class="copy" onclick="cp('https://f-droid.org/packages/com.termux/',this)">копировать</button></div>
+      </div>
+      <div class="step reveal">
+        <div class="num">2</div>
+        <h3>Одна команда — и всё</h3>
+        <p>Вставь в Termux: поставит nodejs/ripgrep, скачает сервер, пропишет доступы, запустит чат.</p>
+        <div class="codebox"><span id="curl">curl -fsSL https://raw.githubusercontent.com/gotical/coting/main/install.sh | bash</span><button class="copy" data-copy="curl -fsSL https://raw.githubusercontent.com/gotical/coting/main/install.sh | bash" onclick="cp(this.dataset.copy,this)">копировать</button></div>
+        <div class="cmds">
+          <b>coting web</b> — открыть чат в браузере<br>
+          <b>coting start</b> · <b>stop</b> · <b>status</b> — сервер<br>
+          <b>coting provider list</b> — модели
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="num">3</div>
+        <h3>APK (по желанию)</h3>
+        <p>Для кнопки «поднять сервер», управления телефоном, скриншотов и галереи. Работает и без приложения — через веб.</p>
+        <div class="codebox"><span id="sz">coting.apk · ~29 КБ · Android 8.0+</span><a class="btn btn-acc" style="padding:9px 16px;font-size:13.5px" href="coting.apk" download onclick="dl('apk')">📥 Скачать APK</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="skachat">
+  <div class="wrap">
+    <div class="dl-card reveal">
+      <h2 style="font-size:clamp(24px,3.4vw,34px)">Скачать Coting APK</h2>
+      <div class="dl-meta">версия <b>v0.1.0-beta</b> · package <b>com.rybinsklab.coting</b> · подпись стабильная (обновления поверх) · исходники открыты</div>
+      <div class="big-count" id="dlCountBig">…</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:2px">скачиваний APK</div>
+      <div class="dl-btns" style="margin-top:26px">
+        <a class="btn btn-acc" href="coting.apk" download onclick="dl('apk')">📥 Прямая ссылка (coting.apk)</a>
+        <a class="btn btn-ghost" href="https://github.com/gotical/coting/releases/latest" target="_blank" rel="noopener" onclick="dl('github')">🐙 С GitHub Releases</a>
+      </div>
+      <div class="dl-note">После установки открой приложение → «🐾 Запустить сервер в Termux». Нужен Termux с установленным Coting (шаг 2 выше).</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2 class="sec-title reveal" style="font-size:clamp(22px,3vw,30px)">Приватность</h2>
+    <div class="priv" style="margin-top:30px">
+      <div class="pv reveal"><b>🔒 Только localhost</b>Сервер и мост слушают 127.0.0.1 — наружу ничего не торчит.</div>
+      <div class="pv reveal"><b>🗝 Ключи на устройстве</b>Ни API-ключи, ни пароли SSH не покидают телефон и не показываются в интерфейсе.</div>
+      <div class="pv reveal"><b> Ноль телеметрии</b>Никакой аналитики и «фоновых отчётов». Страница считает только свои скачивания.</div>
+      <div class="pv reveal"><b>👤 Всё с твоего согласия</b>Accessibility, админ-права, подтверждения команд — включаются только вручную.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 <a href="https://rybinsklab.ru" style="color:var(--acc);font-weight:600">RybinskLab</a> — ИП Усачёв Денис Евгеньевич · сделан на смартфоне 🐾</span>
+    <span><a href="https://github.com/gotical/coting" target="_blank" rel="noopener">GitHub</a> · <a href="https://github.com/gotical/coting/releases/latest" target="_blank" rel="noopener">Releases</a> · <a href="https://rybinsklab.ru">Услуги</a></span>
+  </div>
+</footer>
+
+<script>
+/* ---------- счётчик скачиваний ---------- */
+function upd(n, animate){
+  [document.getElementById('dlCount'), document.getElementById('dlCountBig')].forEach(function(el){
+    if(!el) return;
+    if(animate){
+      var cur = parseInt(el.textContent.replace(/\D/g,'')) || 0, t0 = performance.now();
+      (function roll(t){ var k = Math.min(1,(t-t0)/700); el.textContent = Math.round(cur+(n-cur)*k); if(k<1) requestAnimationFrame(roll); })(t0);
+    } else el.textContent = n;
+  });
+  if(animate){ var cl=document.getElementById('counterLine'); cl.classList.add('bump'); setTimeout(function(){cl.classList.remove('bump')},450); }
+}
+fetch('api.php?a=get').then(function(r){return r.json()}).then(function(j){upd(j.count,false)}).catch(function(){});
+function dl(kind){
+  fetch('api.php?a=dl&t='+kind).catch(function(){});
+  if(kind!=='apk'){ upd((parseInt(document.getElementById('dlCount').textContent)||0)+1, true); }
+}
+
+/* ---------- копирование ---------- */
+function cp(txt, btn){
+  (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(function(){
+    var t=btn.textContent; btn.textContent='✓ скопировано'; setTimeout(function(){btn.textContent=t},1600);
+  }).catch(function(){ btn.textContent='выдели и скопируй'; });
+}
+
+/* ---------- reveal on scroll ---------- */
+var io = new IntersectionObserver(function(es){
+  es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('on'); io.unobserve(e.target); } });
+},{threshold:.14});
+document.querySelectorAll('.reveal').forEach(function(el,i){ el.style.transitionDelay=(i%3*90)+'ms'; io.observe(el); });
+
+/* ---------- печатающийся терминал ---------- */
+var scenes = [
+ [ ["$ ","p"],["coting web\n","w"],
+   ["🐱 сервер жив: http://127.0.0.1:8395\n","g"],
+   ["> ","o"],["сделай сайт как на прикреплённой картинке\n","w"],
+   ["💭 кот думает… изучаю макет, скачиваю пример\n","o"],
+   ["✓ index.html · styles.css · app.js — проект в ZIP готов\n","g"] ],
+ [ ["$ ","p"],["coting provider add mygateway https://api.example.com openai sk-… my-model\n","w"],
+   ["✓ провайдер сохранён (ключ остался на устройстве)\n","g"],
+   ["> ","o"],["подключись к VPS по ssh и проверь место на диске\n","w"],
+   ["🖥 remote_server: df -h → /dev/sda2 41G/80G… готово\n","g"] ],
+];
+var ti=0;
+function typeScene(){
+  var body=document.getElementById('termBody'); body.innerHTML='';
+  var lines=scenes[ti%scenes.length]; ti++;
+  var li=0,ci=0,cur=null;
+  (function step(){
+    if(li>=lines.length){ setTimeout(typeScene,3400); return; }
+    var txt=lines[li][1]==='p'?'p':lines[li][1]; var t=lines[li][0];
+    if(cur===null){ var span=document.createElement('span'); if(txt!=='w')span.className=txt==='p'?'p':txt; body.appendChild(span); cur=span; }
+    if(ci<t.length){ cur.textContent+=t[ci]; ci++;
+      if(ci===t.length && txt==='w'){ body.appendChild(document.createTextNode('\n')); cur=null; ci=0; li+=2; }
+      else if(ci===t.length){ body.appendChild(document.createTextNode('\n')); cur=null; ci=0; li+=2; }
+      setTimeout(step, txt==='w'? 16+Math.random()*34 : 0);
+    } else { cur=null; ci=0; li+=2; setTimeout(step,180); }
+  })();
+}
+typeScene();
+
+/* ---------- падающие лапки на фоне ---------- */
+for(var i=0;i<7;i++){
+  var p=document.createElement('span'); p.className='paw'; p.textContent='🐾';
+  p.style.left=(5+Math.random()*90)+'vw'; p.style.animationDuration=(16+Math.random()*18)+'s';
+  p.style.animationDelay=(-Math.random()*24)+'s'; p.style.fontSize=(18+Math.random()*26)+'px';
+  document.body.appendChild(p);
+}
+</script>
+</body>
+</html>

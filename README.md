@@ -8,6 +8,8 @@
 выполняет команды, лазает по интернету, управляет самим телефоном и твоими серверами —
 через приятный чат в стиле ChatGPT.
 
+**🌐 Подробно с анимациями и скриншотами: [rybinsklab.ru/coting](https://rybinsklab.ru/coting/)**
+
 **[Русский](#-три-формы--один-кот) · [Қазақша](#-coting--смартфон-арналан-ai-агент) · [Українською](#-coting--ai-агент-ексклюзивно-для-смартфонів)**
 
 [![Release](https://img.shields.io/badge/%D1%81%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C_APK-v0.1.0--beta-FF9F43?style=for-the-badge&logo=android)](https://github.com/gotical/coting/releases/latest/download/coting.apk)
@@ -55,6 +57,8 @@ curl -fsSL https://raw.githubusercontent.com/gotical/coting/main/install.sh | ba
 | `coting provider test <id>` | проверка ключа |
 
 ## 📲 Android-приложение (быстрая ссылка)
+
+Подробная страница с инструкциями и счётчиком: **[https://rybinsklab.ru/coting/](https://rybinsklab.ru/coting/)**
 
 **[📥 Скачать APK →](https://github.com/gotical/coting/releases/latest/download/coting.apk)**
 
