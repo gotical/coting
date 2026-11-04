@@ -23,6 +23,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { URL } = require('url');
 const { publicList, upsertCustom, deleteCustom, testProvider, getProvider } = require('./config');
+const servers = require('./servers');
 const { agentRun } = require('./engine');
 
 const PORT = 8395;
@@ -316,6 +317,63 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/sessions' && req.method === 'GET') {
       return sendJson(res, 200, { sessions: listSessions() });
+    }
+
+    // поиск по содержимому чатов: title + все текстовые части сообщений
+    if (p === '/api/search' && req.method === 'GET') {
+      const q = (u.searchParams.get('q') || '').trim().toLowerCase();
+      if (!q) return sendJson(res, 200, { results: [] });
+      const results = [];
+      for (const meta of listSessions()) {
+        const s = loadSession(meta.id);
+        if (!s) continue;
+        let snippet = null;
+        if (s.title.toLowerCase().includes(q)) snippet = s.title;
+        for (const m of s.messages) {
+          if (snippet) break;
+          const texts = typeof m.content === 'string' ? [m.content]
+            : Array.isArray(m.content) ? m.content.filter(b => b.type === 'text').map(b => b.text) : [];
+          for (const t of texts) {
+            const idx = t.toLowerCase().indexOf(q);
+            if (idx >= 0) {
+              const start = Math.max(0, idx - 60);
+              snippet = (start > 0 ? '…' : '') + t.slice(start, idx + q.length + 80).replace(/\s+/g, ' ') + '…';
+              break;
+            }
+          }
+        }
+        if (snippet) results.push({ ...meta, snippet });
+        if (results.length >= 30) break;
+      }
+      return sendJson(res, 200, { results });
+    }
+
+    // ---- серверы и хостинги (ssh/sftp/ftp) ----
+    if (p === '/api/servers' && req.method === 'GET') {
+      return sendJson(res, 200, { servers: servers.publicList() });
+    }
+    if (p === '/api/servers' && req.method === 'POST') {
+      const body = await readBody(req, res);
+      try {
+        const item = servers.upsert(body);
+        return sendJson(res, 200, { ok: true, server: { id: item.id, name: item.name, type: item.type, host: item.host, port: item.port, user: item.user, auth: item.auth } });
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+    }
+    if (p === '/api/servers/test' && req.method === 'POST') {
+      const body = await readBody(req, res);
+      try {
+        const r = servers.testConn(String(body.id || ''));
+        return sendJson(res, 200, r);
+      } catch (e) {
+        return sendJson(res, 200, { ok: false, output: e.message });
+      }
+    }
+    let sm;
+    if ((sm = p.match(/^\/api\/servers\/([\w-]+)$/)) && req.method === 'DELETE') {
+      if (servers.del(sm[1])) return sendJson(res, 200, { ok: true });
+      return sendJson(res, 400, { error: 'нет такого сервера' });
     }
 
     if (p === '/api/sessions' && req.method === 'POST') {

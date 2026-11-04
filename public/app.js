@@ -364,7 +364,7 @@
   // ---------------- панели ----------------
   function closeAll() {
     $('drawer').classList.remove('open');
-    for (const id of ['model-sheet', 'sessions-sheet', 'settings-sheet']) $(id).hidden = true;
+    for (const id of ['model-sheet', 'sessions-sheet', 'settings-sheet', 'providers-sheet', 'servers-sheet']) $(id).hidden = true;
   }
 
   $('menu-btn').addEventListener('click', () => {
@@ -392,42 +392,76 @@
   $('open-settings').addEventListener('click', () => { closeAll(); $('settings-sheet').hidden = false; });
   $('open-providers').addEventListener('click', () => { closeAll(); openProviders(); });
   $('providers-close').addEventListener('click', closeAll);
+  $('open-servers').addEventListener('click', () => { closeAll(); openServers(); });
+  $('servers-close').addEventListener('click', closeAll);
+  $('ns-eye').addEventListener('click', () => {
+    const k = $('ns-secret');
+    k.type = k.type === 'password' ? 'text' : 'password';
+    $('ns-eye').textContent = k.type === 'password' ? '👁' : '🙈';
+  });
   $('model-chip').addEventListener('click', () => { closeAll(); openModelSheet(); });
 
   async function openSessions() {
+    $('sessions-sheet').hidden = false;
+    $('search-input').value = '';
+    renderSessions(null);
+  }
+
+  async function renderSessions(filter) {
     const box = $('sessions-list');
     box.innerHTML = '<div class="provider-label">загрузка…</div>';
-    $('sessions-sheet').hidden = false;
     try {
+      let sessions;
+      if (filter && filter.trim()) {
+        const r = await fetch('/api/search?q=' + encodeURIComponent(filter.trim()));
+        const { results } = await r.json();
+        sessions = results;
+        box.innerHTML = '';
+        if (!sessions.length) {
+          box.innerHTML = '<div class="provider-label">ничего не найдено</div>';
+          return;
+        }
+        for (const s of sessions) {
+          const item = sessionItem(s, s.snippet);
+          box.appendChild(item);
+        }
+        return;
+      }
       const r = await fetch('/api/sessions');
-      const { sessions } = await r.json();
+      const { sessions: list } = await r.json();
+      sessions = list;
       box.innerHTML = '';
       if (!sessions.length) {
         box.innerHTML = '<div class="provider-label">пока пусто — кот ждёт первую задачу 🐾</div>';
         return;
       }
-      for (const s of sessions) {
-        const d = new Date(s.updated);
-        const item = document.createElement('div');
-        item.className = 'session-item' + (s.id === state.sessionId ? ' selected' : '');
-        item.innerHTML = `<span class="s-title">${esc(s.title)}</span><span class="s-meta">${d.toLocaleDateString('ru-RU')} ${d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</span><button class="s-del" title="Удалить">✕</button>`;
-        item.querySelector('.s-title').addEventListener('click', () => openSession(s.id));
-        item.querySelector('.s-meta').addEventListener('click', () => openSession(s.id));
-        item.querySelector('.s-del').addEventListener('click', async ev => {
-          ev.stopPropagation();
-          await fetch('/api/sessions/' + s.id, { method: 'DELETE' });
-          if (s.id === state.sessionId) {
-            state.sessionId = null;
-            localStorage.removeItem('coting.sid');
-          }
-          openSessions();
-          toast('чат удалён');
-        });
-        box.appendChild(item);
-      }
+      for (const s of sessions) box.appendChild(sessionItem(s, null));
     } catch {
       box.innerHTML = '<div class="provider-label">ошибка загрузки</div>';
     }
+  }
+
+  function sessionItem(s, snippet) {
+    const d = new Date(s.updated);
+    const item = document.createElement('div');
+    item.className = 'session-item' + (s.id === state.sessionId ? ' selected' : '');
+    item.innerHTML = `<div style="flex:1;min-width:0"><span class="s-title">${esc(s.title)}</span>` +
+      (snippet ? `<div class="s-snippet">${esc(snippet)}</div>` : '') +
+      `</div><span class="s-meta">${d.toLocaleDateString('ru-RU')} ${d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</span><button class="s-del" title="Удалить">✕</button>`;
+    item.querySelector('.s-title').addEventListener('click', () => openSession(s.id));
+    if (snippet) item.querySelector('.s-snippet').addEventListener('click', () => openSession(s.id));
+    item.querySelector('.s-meta').addEventListener('click', () => openSession(s.id));
+    item.querySelector('.s-del').addEventListener('click', async ev => {
+      ev.stopPropagation();
+      await fetch('/api/sessions/' + s.id, { method: 'DELETE' });
+      if (s.id === state.sessionId) {
+        state.sessionId = null;
+        localStorage.removeItem('coting.sid');
+      }
+      renderSessions($('search-input').value);
+      toast('чат удалён');
+    });
+    return item;
   }
 
   async function openSession(id) {
@@ -492,6 +526,124 @@
       toast('не удалось открыть чат');
     }
   }
+
+  // ---------------- серверы и хостинги ----------------
+  async function openServers() {
+    $('servers-sheet').hidden = false;
+    await renderServers();
+  }
+
+  async function renderServers() {
+    const box = $('servers-list');
+    box.innerHTML = '<div class="provider-label">загрузка…</div>';
+    try {
+      const r = await fetch('/api/servers');
+      const { servers } = await r.json();
+      box.innerHTML = '';
+      if (!servers.length) {
+        box.innerHTML = '<div class="provider-label">пока пусто — добавь VPS/хостинг ниже</div>';
+        return;
+      }
+      for (const sv of servers) {
+        const item = document.createElement('div');
+        item.className = 'provider-item';
+        item.innerHTML =
+          `<div class="pi-row"><span class="pi-name">${esc(sv.name)}</span><span class="pi-badge custom">${sv.type}</span></div>` +
+          `<div class="pi-meta">${sv.user}@${esc(sv.host)}:${sv.port} · ${sv.secretMask}</div>`;
+        const actions = document.createElement('div');
+        actions.className = 'pi-actions';
+        const test = document.createElement('button');
+        test.className = 'btn-ghost'; test.textContent = 'Проверить';
+        test.addEventListener('click', async () => {
+          test.disabled = true; test.textContent = '…';
+          try {
+            const rr = await fetch('/api/servers/test', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ id: sv.id }),
+            });
+            const j = await rr.json();
+            toast((j.ok ? '✓ связь есть' : '✗ ' + (j.output || 'ошибка')).slice(0, 80));
+          } catch { toast('ошибка проверки'); }
+          test.disabled = false; test.textContent = 'Проверить';
+        });
+        const del = document.createElement('button');
+        del.className = 'btn-ghost danger'; del.textContent = 'Удалить';
+        del.addEventListener('click', async () => {
+          await fetch('/api/servers/' + sv.id, { method: 'DELETE' });
+          toast('сервер удалён');
+          renderServers();
+        });
+        actions.appendChild(test); actions.appendChild(del);
+        item.appendChild(actions);
+        box.appendChild(item);
+      }
+    } catch {
+      box.innerHTML = '<div class="provider-label">ошибка загрузки</div>';
+    }
+  }
+
+  function serverPayload() {
+    return {
+      id: $('ns-name').value.trim().toLowerCase().replace(/[^\w-]+/g, '-') || undefined,
+      name: $('ns-name').value.trim() || $('ns-host').value.trim() || 'сервер',
+      type: $('ns-type').value,
+      host: $('ns-host').value.trim(),
+      port: $('ns-port').value.trim() || undefined,
+      user: $('ns-user').value.trim() || 'root',
+      auth: $('ns-secret').value.trim().startsWith('/') ? 'key' : 'password',
+      secret: $('ns-secret').value.trim(),
+    };
+  }
+
+  $('ns-test').addEventListener('click', async () => {
+    const st = $('ns-status');
+    st.hidden = false; st.className = 'np-status'; st.textContent = 'сохраняю и проверяю…';
+    try {
+      // сначала сохранить (тест идёт по id)
+      const r = await fetch('/api/servers', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(serverPayload()),
+      });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || 'ошибка сохранения');
+      const rr = await fetch('/api/servers/test', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id: j.server.id }),
+      });
+      const res = await rr.json();
+      st.textContent = res.ok ? '✓ связь есть: ' + String(res.output).split('\n').slice(0, 2).join(' · ') : '✗ ' + (res.output || 'нет связи');
+      st.classList.add(res.ok ? 'ok' : 'fail');
+      renderServers();
+    } catch (e) {
+      st.textContent = '✗ ' + e.message;
+      st.classList.add('fail');
+    }
+  });
+
+  $('ns-save').addEventListener('click', async () => {
+    const st = $('ns-status');
+    st.hidden = false; st.className = 'np-status';
+    try {
+      const r = await fetch('/api/servers', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(serverPayload()),
+      });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || 'ошибка сохранения');
+      st.textContent = '✓ сохранён: ' + j.server.id;
+      st.classList.add('ok');
+      $('ns-secret').value = '';
+      await renderServers();
+      toast('сервер добавлен: ' + j.server.id);
+    } catch (e) {
+      st.textContent = '✗ ' + e.message;
+      st.classList.add('fail');
+    }
+  });
 
   // ---------------- выбор модели ----------------
   function refreshChip() {
@@ -644,6 +796,12 @@
       st.textContent = '✗ ' + e.message;
       st.classList.add('fail');
     }
+  });
+
+  let searchTimer = null;
+  $('search-input').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => renderSessions($('search-input').value), 300);
   });
 
   // ---------------- ввод ----------------

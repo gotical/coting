@@ -62,6 +62,9 @@
     <span>История чатов</span>
     <button id="sessions-close" class="iconbtn">×</button>
   </div>
+  <div class="search-wrap">
+    <input id="search-input" type="text" placeholder="🔍 Поиск по всем чатам…" />
+  </div>
   <div id="sessions-list" class="sessions-list"></div>
 </aside>
 
@@ -84,6 +87,7 @@
       <input id="light-toggle" type="checkbox" />
     </label>
     <button id="open-providers" class="drawer-btn" style="margin:0">🔗 Провайдеры и аккаунты</button>
+    <button id="open-servers" class="drawer-btn" style="margin:0">🖥 Серверы и хостинги (SSH/FTP)</button>
     <p class="note">Когда включено подтверждение — перед каждой командой кот спросит разрешения. По умолчанию команды выполняются сразу.</p>
   </div>
 </aside>
@@ -118,6 +122,42 @@
         <button id="np-save" class="btn-accent">Сохранить</button>
       </div>
       <div id="np-status" class="np-status" hidden></div>
+    </div>
+  </div>
+</aside>
+
+<aside id="servers-sheet" class="sheet" hidden>
+  <div class="sheet-header">
+    <span>Серверы и хостинги</span>
+    <button id="servers-close" class="iconbtn">×</button>
+  </div>
+  <div class="settings-body" style="padding-top:8px">
+    <div id="servers-list" class="providers-list"></div>
+    <p class="note">Аккаунты хранятся на устройстве (~/.config/coting/servers.json, chmod 600). Агент сможет выполнять команды и гонять файлы — только когда ты попросишь в чате.</p>
+    <div class="add-provider">
+      <div class="provider-form-title">＋ Свой сервер</div>
+      <label class="field"><span>Название</span><input id="ns-name" type="text" placeholder="Мой VPS" /></label>
+      <label class="field"><span>Тип</span>
+        <select id="ns-type">
+          <option value="ssh">SSH (команды + файлы)</option>
+          <option value="sftp">SFTP (файлы по SSH)</option>
+          <option value="ftp">FTP (файлы)</option>
+        </select>
+      </label>
+      <label class="field"><span>Хост</span><input id="ns-host" type="text" placeholder="92.38.48.252 или host.example.com" spellcheck="false" /></label>
+      <label class="field"><span>Порт</span><input id="ns-port" type="text" placeholder="22" inputmode="numeric" /></label>
+      <label class="field"><span>Пользователь</span><input id="ns-user" type="text" placeholder="root" spellcheck="false" /></label>
+      <label class="field"><span>Пароль / путь к ключу</span>
+        <span class="keywrap">
+          <input id="ns-secret" type="password" placeholder="пароль или /data/.../id_rsa" autocomplete="off" spellcheck="false" />
+          <button id="ns-eye" class="eye" type="button" title="Показать">👁</button>
+        </span>
+      </label>
+      <div class="provider-actions">
+        <button id="ns-test" class="btn-ghost">Проверить связь</button>
+        <button id="ns-save" class="btn-accent">Сохранить</button>
+      </div>
+      <div id="ns-status" class="np-status" hidden></div>
     </div>
   </div>
 </aside>

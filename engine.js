@@ -14,6 +14,7 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { getProvider } = require('./config');
+const servers = require('./servers');
 
 const HOME = os.homedir();
 
@@ -124,6 +125,22 @@ const TOOLS = [
         x2: { type: 'integer', description: 'для swipe: конец X' },
         y2: { type: 'integer', description: 'для swipe: конец Y' },
         ms: { type: 'integer', description: 'для swipe: длительность мс (по умолчанию 300)' },
+      },
+      required: ['action'],
+    },
+  },
+  {
+    name: 'remote_server',
+    description: 'Работа с серверами и хостингами пользователя (аккаунты заданы в настройках Coting). Действия: list (список серверов), test (проверка связи), exec (выполнить shell-команду по ssh), put (загрузить файл на сервер), get (скачать файл с сервера). Для ftp доступен только put/get (листинг через test). Вызывай, когда пользователь просит что-то сделать на его сервере/хостинге.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        action: { type: 'string', enum: ['list', 'test', 'exec', 'put', 'get'], description: 'Что сделать' },
+        id: { type: 'string', description: 'id сервера (из list)' },
+        command: { type: 'string', description: 'для exec: shell-команда на сервере' },
+        remote: { type: 'string', description: 'для put/get: путь на сервере' },
+        local: { type: 'string', description: 'для put/get: локальный путь в Termux' },
+        timeout: { type: 'integer', description: 'для exec: таймаут сек (по умолчанию 60, макс 300)' },
       },
       required: ['action'],
     },
@@ -534,13 +551,44 @@ async function openaiStream(opts) {
   };
 }
 
+// ---------------- remote_server (ssh/sftp/ftp через servers.js) ----------------
+function remoteServer(i) {
+  try {
+    switch (String(i.action || '')) {
+      case 'list': {
+        const all = servers.list();
+        if (!all.length) return { ok: true, output: 'серверов пока нет — добавь в настройках Coting («🖥 Серверы») или скажи пользователю, что нужно добавить аккаунт: host, user, пароль/ключ, тип ssh/sftp/ftp.' };
+        return { ok: true, output: all.map(x => `${x.id}  ${x.type}  ${x.user}@${x.host}:${x.port}  ${x.name}`).join('\n') };
+      }
+      case 'test': {
+        if (!i.id) return { ok: false, output: 'укажи id (сначала list)' };
+        return servers.testConn(String(i.id));
+      }
+      case 'exec': {
+        if (!i.id || !i.command) return { ok: false, output: 'нужны id и command' };
+        return servers.exec(String(i.id), String(i.command), parseInt(i.timeout, 10) || 60);
+      }
+      case 'put':
+      case 'get': {
+        if (!i.id || !i.remote || !i.local) return { ok: false, output: 'нужны id, remote и local' };
+        return servers.transfer(String(i.id), String(i.action), String(i.remote), String(i.local));
+      }
+      default:
+        return { ok: false, output: 'неизвестное действие: ' + i.action };
+    }
+  } catch (e) {
+    return { ok: false, output: 'remote_server: ' + e.message };
+  }
+}
+
 // ---------------- системный промпт ----------------
 function systemPrompt(cwd) {
   const uname = spawnSync('uname', ['-a'], { encoding: 'utf8' });
   return [
-    'Ты — Coting (Котинк), автономный кодинг-агент, работающий в Termux на Android. У тебя есть инструменты: run_command, read_file, write_file, edit_file, list_dir, search_files, web_fetch, android_device.',
+    'Ты — Coting (Котинк), автономный кодинг-агент, работающий в Termux на Android. У тебя есть инструменты: run_command, read_file, write_file, edit_file, list_dir, search_files, web_fetch, android_device, remote_server.',
     'Правила: (1) Не выдумывай содержимое файлов и результаты команд — проверяй инструментами. (2) Действуй сам: выполняй команды, читай и правь файлы, не проси пользователя сделать это за тебя. (3) Отвечай по-русски; код, команды, пути и технические термины — латиницей без перевода. (4) Перед деструктивными действиями (удаление файлов, изменение системных настроек) сделай бэкап затронутого. (5) Пиши кратко и по делу, без воды. Тон дружелюбный, лёгкая кошачья нотка уместна, но код и факты — строго по существу.',
-    'Телефон: android_device тапает/свайпает/читает экран/делает скриншоты через приложение Coting — используй его, когда пользователь просит управлять телефоном. Сначала вызови status, чтобы узнать, включены ли accessibility и admin.'
+    'Серверы: remote_server подключается к аккаунтам ssh/sftp/ftp пользователя (список — action list, детали в настройках Coting) — выполняй там команды и гоняй файлы, когда он просит что-то настроить на своём сервере/хостинге.'
+    + 'Телефон: android_device тапает/свайпает/читает экран/делает скриншоты через приложение Coting — используй его, когда пользователь просит управлять телефоном. Сначала вызови status, чтобы узнать, включены ли accessibility и admin.'
     + 'Интернет: для страниц и API используй web_fetch — он сам ходит под видом мобильного Яндекс.Браузера. Если делаешь сетевые запросы через shell (curl/wget) — ВСЕГДА ставь тот же User-Agent: "' + MOBILE_YA_UA + '" и заголовок Accept-Language: ru-RU,ru;q=0.9.',
     'Окружение:',
     `cwd: ${cwd || HOME}`,
@@ -640,6 +688,7 @@ async function agentRun(o) {
       let res;
       if (tu.name === 'web_fetch') res = await webFetch(String(tu.input?.url || ''));
       else if (tu.name === 'android_device') res = await androidDevice(tu.input || {});
+      else if (tu.name === 'remote_server') res = remoteServer(tu.input || {});
       else res = runTool(tu.name, tu.input, cwd);
       onEvent({ type: 'tool_end', id: tu.id, name: tu.name, ok: res.ok, output: res.output });
       results.push({
